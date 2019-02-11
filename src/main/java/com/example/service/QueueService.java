@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public class QueueService {
 
-    // Will need sqs functionality
+    // Will need sqs functionality to do the real queue activity
     @Autowired
     AmazonSQSClient sqsClient;
 
@@ -91,12 +91,4 @@ public class QueueService {
 
         return messageText;
     }
-
-
-
-
-
-
-
-
 }

@@ -53,8 +53,4 @@ public class QueueConfig {
 
         return client;
     }
-
-
-
-
 }
