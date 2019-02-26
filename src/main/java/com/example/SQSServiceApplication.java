@@ -28,10 +28,20 @@ public class SQSServiceApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        boolean pollMode = true;
+        boolean pollMode = false;
         String  queueName = "testing";
         long sleepyTime=10000;
         String  msgTxt = "";
+
+//
+//        System.out.println(
+//            "SUMMARY REPORT: "
+//            +"\ngeneration requested: "+11
+//                +"\nprocessed: "+12
+//                +"\nprocessed successful: "+(13)
+//                +"\nprocessed error: "+14
+//                +"\nprocessed warning: "+15 );
+
 
         // Put some space between us and the "reflection" moaning ...
         System.out.println(" ");

@@ -54,6 +54,42 @@ public class QueueConfig {
         return client;
     }
 
+    /**
+     * Less deprecated approach
+     * @return
+     */
+    @Bean
+    public AmazonSQS amazonSQS(){
+
+        // Endpoint
+        AwsClientBuilder.EndpointConfiguration endpoint =
+                new AwsClientBuilder.EndpointConfiguration(
+                        serviceEndpoint,
+                        signingRegion);
+
+        // Security credentials
+        AWSCredentialsProvider creds =
+                new AWSStaticCredentialsProvider(
+                        new BasicAWSCredentials(
+                                accessKey,
+                                secretKey
+                        )
+                );
+
+        AmazonSQS sqs= AmazonSQSClientBuilder
+                .standard()
+                .withEndpointConfiguration(endpoint)
+                .withCredentials(creds)
+                .build();
+
+        return sqs;
+    }
+
+
+
+
+
+
 
 
 

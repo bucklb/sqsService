@@ -1,6 +1,7 @@
 package com.example.service;
 
 
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.Message;
@@ -15,7 +16,10 @@ public class QueueService {
 
     // Will need sqs functionality
     @Autowired
-    AmazonSQSClient sqsClient;
+//    AmazonSQSClient sqsClient;
+    AmazonSQS sqsClient;
+
+
 
     String QUEUE_PREFIX = "queue/";
 
