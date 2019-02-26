@@ -24,6 +24,8 @@ public class QueueService {
     String ALL_ATTRIBUTES = "All";  // VERY case sensitive !!!
     String ATTRIBUTE_NAME = "txID";
     String QUEUE_PREFIX = "queue/";
+    Integer LONG_POLL = 5;  // how long to wait if nothing returned
+    Integer MAX_MSGS =2;    // how many messages at a time
 
 
     /**
@@ -73,8 +75,8 @@ public class QueueService {
                 // add attributes
                 .addMessageAttributesEntry(ATTRIBUTE_NAME, new MessageAttributeValue()
                         .withDataType("String")
-                        .withStringValue("test attrib value for " + messageText)
-                );
+                        .withStringValue("test attrib value for " + messageText))
+                ;
 
         // send it to queue
         sqsClient.sendMessage( smr );
@@ -94,12 +96,17 @@ public class QueueService {
 
         ReceiveMessageRequest rmr=new ReceiveMessageRequest()
                 .withQueueUrl( queueUrl )
-                .withMessageAttributeNames(ALL_ATTRIBUTES);
+                .withMessageAttributeNames(ALL_ATTRIBUTES)
+                .withWaitTimeSeconds(LONG_POLL)    // delay before next poll IF nothing returend
+                .withMaxNumberOfMessages(MAX_MSGS) // Number of messages per poll
+                ;
 
 
 
 //        List<Message> messages = sqsClient.receiveMessage( queueUrl ).getMessages();
         List<Message> messages = sqsClient.receiveMessage( rmr ).getMessages();
+        System.out.println( "Messages retrieved : " + messages.size() );
+
         for (Message m : messages) {
 
             // if attribute is present then show, but otherwise show "no attribute"
