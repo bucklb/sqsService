@@ -3,9 +3,7 @@ package com.example.service;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +12,8 @@ import java.util.List;
 @Service
 public class QueueService {
 
+
+
     // Will need sqs functionality
     @Autowired
 //    AmazonSQSClient sqsClient;
@@ -21,6 +21,8 @@ public class QueueService {
 
 
 
+    String ALL_ATTRIBUTES = "All";  // VERY case sensitive !!!
+    String ATTRIBUTE_NAME = "txID";
     String QUEUE_PREFIX = "queue/";
 
 
@@ -67,7 +69,12 @@ public class QueueService {
         SendMessageRequest smr=new SendMessageRequest()
                 .withQueueUrl( queueUrl )
                 .withMessageBody( messageText )
-                .withDelaySeconds( 0 );
+                .withDelaySeconds( 0 )
+                // add attributes
+                .addMessageAttributesEntry(ATTRIBUTE_NAME, new MessageAttributeValue()
+                        .withDataType("String")
+                        .withStringValue("test attrib value for " + messageText)
+                );
 
         // send it to queue
         sqsClient.sendMessage( smr );
@@ -83,12 +90,24 @@ public class QueueService {
         // TODO : improve getting the queue Url
         String queueUrl = QUEUE_PREFIX + queueName;
         String messageText = "";
+        String attributeText="";
 
-        List<Message> messages = sqsClient.receiveMessage( queueUrl ).getMessages();
+        ReceiveMessageRequest rmr=new ReceiveMessageRequest()
+                .withQueueUrl( queueUrl )
+                .withMessageAttributeNames(ALL_ATTRIBUTES);
+
+
+
+//        List<Message> messages = sqsClient.receiveMessage( queueUrl ).getMessages();
+        List<Message> messages = sqsClient.receiveMessage( rmr ).getMessages();
         for (Message m : messages) {
 
+            // if attribute is present then show, but otherwise show "no attribute"
+            attributeText = m.getMessageAttributes().containsKey(ATTRIBUTE_NAME)
+                    ? m.getMessageAttributes().get(ATTRIBUTE_NAME).getStringValue() : "no value";
+
             messageText = m.getBody();
-            System.out.println( "Message body was -> " + messageText );
+            System.out.println( "Message body was : " + messageText + " -> " + ATTRIBUTE_NAME + " : " + attributeText );
 
             sqsClient.deleteMessage(queueUrl, m.getReceiptHandle());
         }
