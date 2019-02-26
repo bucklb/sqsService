@@ -9,6 +9,7 @@ import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableMBeanExport;
 
 /**
  * components we'll need
@@ -28,27 +29,10 @@ public class QueueConfig {
 
         System.out.println("AmazonSQSClient");
 
-
-        // Endpoint
-        AwsClientBuilder.EndpointConfiguration endpoint =
-                new AwsClientBuilder.EndpointConfiguration(
-                        serviceEndpoint,
-                        signingRegion);
-
-        // Security credentials
-        AWSCredentialsProvider creds =
-                new AWSStaticCredentialsProvider(
-                        new BasicAWSCredentials(
-                                accessKey,
-                                secretKey
-                        )
-                );
-
         // Build the client
-        AmazonSQSClient client =null;
-            client = (AmazonSQSClient) AmazonSQSClientBuilder.standard()
-                    .withEndpointConfiguration(endpoint)
-                    .withCredentials(creds)
+        AmazonSQSClient client = (AmazonSQSClient) AmazonSQSClientBuilder.standard()
+                    .withEndpointConfiguration(endpointConfiguration())
+                    .withCredentials(awsCredentialsProvider())
                     .build();
 
         return client;
@@ -61,31 +45,31 @@ public class QueueConfig {
     @Bean
     public AmazonSQS amazonSQS(){
 
-        // Endpoint
-        AwsClientBuilder.EndpointConfiguration endpoint =
-                new AwsClientBuilder.EndpointConfiguration(
-                        serviceEndpoint,
-                        signingRegion);
-
-        // Security credentials
-        AWSCredentialsProvider creds =
-                new AWSStaticCredentialsProvider(
-                        new BasicAWSCredentials(
-                                accessKey,
-                                secretKey
-                        )
-                );
-
         AmazonSQS sqs= AmazonSQSClientBuilder
                 .standard()
-                .withEndpointConfiguration(endpoint)
-                .withCredentials(creds)
+                .withEndpointConfiguration(endpointConfiguration())
+                .withCredentials(awsCredentialsProvider())
                 .build();
 
         return sqs;
     }
 
+    // Security credentials
+    @Bean
+    public AWSCredentialsProvider awsCredentialsProvider() {
+        return  new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(
+                        accessKey,
+                        secretKey));
+    }
 
+    // End Pt Config
+    @Bean
+    public AwsClientBuilder.EndpointConfiguration endpointConfiguration() {
+        return new AwsClientBuilder.EndpointConfiguration(
+                serviceEndpoint,
+                signingRegion);
+    }
 
 
 

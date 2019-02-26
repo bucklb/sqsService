@@ -1,6 +1,7 @@
 package com.example;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 public class sqsTest {
 
@@ -9,9 +10,5 @@ public class sqsTest {
 
     }
 
-    // Make sure we can start
-    @Test
-    public void contextLoads() {
-    }
 
 }
