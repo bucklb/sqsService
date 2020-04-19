@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+//@Service
 public class QueueService {
 
 
@@ -28,10 +28,30 @@ public class QueueService {
     Integer MAX_MSGS =2;    // how many messages at a time
 
 
+
+
+    // Probably best to try and avoid creating queue too many times
+    String forQueue = null;
+
+
+    // Check creation of consumer with details
+    public QueueService(String queueName) {
+        System.out.println("QueueService instanced with " + queueName );
+        forQueue = queueName;
+    }
+
+    // Check creation of consumer with details
+    public QueueService() {
+        System.out.println("QueueService instanced with " + "<NO QUEUE NAME GIVEN>" );
+    }
+
+
+
     /**
      * initial point to instance things
      */
     public void doSQS() {
+        // Should maybe offer mechanism to create a queue (or set of)
         System.out.println("doSQS");
     }
 
@@ -41,15 +61,21 @@ public class QueueService {
      */
     protected void createQueue( String queueName ) {
 
-        CreateQueueRequest createRequest=new CreateQueueRequest( queueName )
-                .addAttributesEntry("MessageRetentionPeriod", "86400");
+        // We should have set the queue if it's there (including oif we just created it)
+        if (forQueue == null){
 
-        try {
+            CreateQueueRequest createRequest=new CreateQueueRequest( queueName )
+                    .addAttributesEntry("MessageRetentionPeriod", "86400");
 
-            sqsClient.createQueue(createRequest);
-        } catch (Exception e) {
+            try {
+                // Use SQS create queue and record name if we don't throw an exception
+                sqsClient.createQueue(createRequest);
+                forQueue = queueName;
 
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
 
     }
@@ -94,6 +120,9 @@ public class QueueService {
         String messageText = "";
         String attributeText="";
 
+        // BB 20200419 - atempting to run as poller is failing as queue needn't exist
+        createQueue( queueName );
+
         ReceiveMessageRequest rmr=new ReceiveMessageRequest()
                 .withQueueUrl( queueUrl )
                 .withMessageAttributeNames(ALL_ATTRIBUTES)
@@ -122,6 +151,11 @@ public class QueueService {
         return messageText;
     }
 
+    // While I play!!
+    public String getQueueName() {
+        System.out.println("getQueueName returning -> " + forQueue);
+        return forQueue;
+    }
 
 
 
