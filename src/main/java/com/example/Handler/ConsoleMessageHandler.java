@@ -5,15 +5,13 @@ import org.springframework.stereotype.Component;
 /*
     Baby steps. Just push the message to console with something about who wrote it there
  */
-@Component
-public class ConsoleHandler implements HandlerService {
+public class ConsoleMessageHandler implements MessageHandlerService {
 
 
     @Override
     public boolean handle(String msgText) {
 
         System.out.println("ConsoleHandler : " + msgText);
-
         return false;
     }
 }

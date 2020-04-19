@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.service.SqsQueueService;
+import com.example.service.SqsMessageSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.Banner;
@@ -17,7 +17,11 @@ public class CreateSqsQueueItems implements CommandLineRunner {
     // Will want an easy way to create queue entries
     @Autowired
     @Qualifier("bbService")
-    private SqsQueueService queueService;
+    private SqsMessageSource queueService;
+
+    @Autowired
+    @Qualifier("subService")
+    private SqsMessageSource subService;
 
     String  queueName = "testing";
 
@@ -52,6 +56,8 @@ public class CreateSqsQueueItems implements CommandLineRunner {
         queueService.sendMessage("e", queueName);
         queueService.sendMessage("f", queueName);
 
+        subService.sendMessage("1st", "trying");
+        subService.sendMessage("2nd", "trying");
 
     }
 

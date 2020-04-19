@@ -1,4 +1,4 @@
-package com.example;
+package com.example.Config;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -14,14 +14,15 @@ import org.springframework.context.annotation.EnableMBeanExport;
 /**
  * components we'll need
  */
+// Need an sqsClient to underpin sqsMessageSource
 @Configuration
-public class SqsQueueConfig {
+public class SqsClientConfig {
 
     String serviceEndpoint = "http://localhost:4576/";
     String signingRegion   = "us-east-1";
     String accessKey = "accessKey";
     String secretKey = "secretKey";
-    String queueUrl  = "queue/testing";
+//    String queueUrl  = "queue/testing";
 
     // TODO : AmazonSQSclient or AmazonSQS better option
     @Bean
