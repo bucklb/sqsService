@@ -15,7 +15,7 @@ import org.springframework.context.annotation.EnableMBeanExport;
  * components we'll need
  */
 @Configuration
-public class QueueConfig {
+public class SqsQueueConfig {
 
     String serviceEndpoint = "http://localhost:4576/";
     String signingRegion   = "us-east-1";

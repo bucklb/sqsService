@@ -1,5 +1,6 @@
 package com.example.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,10 +18,11 @@ public class ConsumerConfig {
 
     // At heart, pass back a queueService (for now) that system can use
     @Bean
-    public QueueService sqsService() {
+    @Qualifier("bbService")
+    public SqsQueueService sqsService() {
 
         System.out.println("ConsumerConfig creating queueService as bean.  queueName = " +queueName );
-        QueueService qs = new QueueService( queueName );
+        SqsQueueService qs = new SqsQueueService( queueName );
         return qs;
     }
 

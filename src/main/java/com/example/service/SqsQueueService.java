@@ -5,16 +5,29 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 //@Service
-public class QueueService {
+//@Qualifier("rawQueue")
+public class SqsQueueService implements Runnable{
+
+    boolean poll = true;
 
 
 
-    // Will need sqs functionality
+
+//    @EventListener(ApplicationStartedEvent.class)
+//    public void handleApplicationStarted(){
+//        System.out.println("Application Started according to listener.  in QueueService");
+//    }
+
+    // Will need sqs functionality - handled by Config
     @Autowired
 //    AmazonSQSClient sqsClient;
     AmazonSQS sqsClient;
@@ -34,16 +47,56 @@ public class QueueService {
     String forQueue = null;
 
 
+
+
     // Check creation of consumer with details
-    public QueueService(String queueName) {
+    public SqsQueueService(String queueName) {
         System.out.println("QueueService instanced with " + queueName );
         forQueue = queueName;
     }
 
     // Check creation of consumer with details
-    public QueueService() {
+    public SqsQueueService() {
         System.out.println("QueueService instanced with " + "<NO QUEUE NAME GIVEN>" );
     }
+
+
+    @Override
+    public void run() {
+        // bare minimum to make this start
+        doSQS();
+
+        pause();
+        beginPollinOnCommand();
+
+    }
+
+    // Moved this out of run while I experiment
+    public void beginPollinOnCommand() {
+
+        // Poll (what if things aren't ready for our polling?
+//        System.out.println("pre poll pause");
+//        pause();
+
+        System.out.println("starting the polling in beginPollinOnCommand");
+        while (poll) {
+            String msgTxt = getMessage(forQueue);
+            pause();
+        }
+    }
+
+    private void pause() {
+        try {
+            Thread.sleep(1000);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
 
 
 
@@ -52,7 +105,7 @@ public class QueueService {
      */
     public void doSQS() {
         // Should maybe offer mechanism to create a queue (or set of)
-        System.out.println("doSQS");
+        System.out.println("doSQS called");
     }
 
     /**
@@ -145,6 +198,14 @@ public class QueueService {
             messageText = m.getBody();
             System.out.println( "Message body was : " + messageText + " -> " + ATTRIBUTE_NAME + " : " + attributeText );
 
+
+            // This is where we will want to put in stuff to kick this upstairs
+            // which could be directly OR via some kind of exchange
+
+            // ? Where would any unencryption sit?
+
+
+            // Likely to want to react on basis of response to the publish/handle stuff
             sqsClient.deleteMessage(queueUrl, m.getReceiptHandle());
         }
 
