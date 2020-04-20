@@ -1,6 +1,5 @@
 package com.example;
 
-import com.example.Handler.ConsoleMessageTextHandler;
 import com.example.service.SqsMessageSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
