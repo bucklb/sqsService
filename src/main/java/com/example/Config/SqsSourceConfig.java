@@ -1,7 +1,6 @@
 package com.example.Config;
 
-import com.example.Handler.ConsoleMessageHandler;
-import com.example.Handler.MessageHandlerService;
+import com.example.Handler.MessageTextHandlerService;
 import com.example.service.SqsMessageSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +19,7 @@ public class SqsSourceConfig {
     // Reading from the queue is pointless without something to handle the read message
     @Autowired
     @Qualifier("subHandler")
-    private MessageHandlerService subHandler;
+    private MessageTextHandlerService subHandler;
 
 
     // At heart, pass back a queueService (for now) that system can use
@@ -30,6 +29,7 @@ public class SqsSourceConfig {
         queueName = "testing";
         System.out.println("ConsumerConfig creating queueService as bean.  queueName = " +queueName );
         SqsMessageSource qs = new SqsMessageSource( queueName );
+        qs.setMessageHandler(subHandler);
         return qs;
     }
 

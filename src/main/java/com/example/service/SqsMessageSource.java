@@ -2,78 +2,80 @@ package com.example.service;
 
 
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
-import com.example.Handler.MessageHandlerService;
+import com.example.Handler.MessageTextHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 //@Service
 //@Qualifier("rawQueue")
-public class SqsMessageSource implements Runnable{
+public class SqsMessageSource implements Runnable, MessageSource {
 
     boolean poll = true;
 
 
-    // Will need sqs functionality - handled by Config
+    // Will need sqs functionality - handled by sqsClient (via config)
     @Autowired
     AmazonSQS sqsClient;
 
-    String ALL_ATTRIBUTES = "All";  // VERY case sensitive !!!
-    String ATTRIBUTE_NAME = "txID";
-    String QUEUE_PREFIX = "queue/";
-    Integer LONG_POLL = 5;  // how long to wait if nothing returned
-    Integer MAX_MSGS =2;    // how many messages at a time
+    // Could (but maybe not should) autowire validator, crypto, mapper, etc
 
-    // Probably best to try and avoid creating queue too many times
-    String forQueue = null;
-    MessageHandlerService messageHandlerService;
 
-    // Check creation of consumer with details
+
+    private String ALL_ATTRIBUTES = "All";  // VERY case sensitive !!!
+    private String ATTRIBUTE_NAME = "txID";
+    private String QUEUE_PREFIX = "queue/";
+    private Integer LONG_POLL = 5;  // how long to wait if nothing returned
+    private Integer MAX_MSGS = 2;    // how many messages at a time
+    private boolean CREATE_Q_ALWAYS = false;    // Create queue called every time we do a get / send ??
+
+    // Want something to handle the queue entries we retrieve
+    MessageTextHandlerService messageHandlerService;
+
+    // === SET UP / CONFIG TYPE STUFF ===
+    // Queues need names and queue Message Sources need queues
+//    String forQueue = null;
+
+    String qNme = null;
+    String qUrl = null;
+
+    // At this point should have enough details (specifically sqsClient should be good to go)
+    @PostConstruct
+    private void doInit() {
+        // Fire once (rather than every time we want to create/read message)
+        createQueue();
+//        deleteQueue();
+    }
+
+    // Not much use being a queue poller if we don't have a queue
     public SqsMessageSource(String queueName) {
-        System.out.println(">>>> QueueService instanced with " + queueName );
-        forQueue = queueName;
+//        System.out.println(">>>> QueueService instanced with " + queueName);
+
+        qNme = queueName;
+        qUrl = QUEUE_PREFIX + qNme;
     }
 
-    // Check creation of consumer with details
-    public SqsMessageSource() {
-        System.out.println("QueueService instanced with " + "<NO QUEUE NAME GIVEN>" );
-    }
-
-    // Realistically, will want someone to give us something that can handle the message we recover
-    public void setMessageHandler(MessageHandlerService messageHandlerService) {
+    // Receiving a message is pointless without a mean to do something with it
+    public void setMessageHandler(MessageTextHandlerService messageHandlerService) {
         this.messageHandlerService = messageHandlerService;
     }
 
-
-
-
-
-
+    // === RUNNABLE ===
     @Override
     public void run() {
-        // bare minimum to make this start
-        doSQS();
-        // and begin
+        // pause for a second and then start polling/handling
         pause();
         beginPollingOnCommand();
-
     }
 
     // Moved this out of run while I experiment
     public void beginPollingOnCommand() {
 
-        // Probably a good time to create the queue (or call the function at least)
-
-        System.out.println("starting the polling in beginPollinOnCommand");
+//        System.out.println("starting the polling in beginPollinOnCommand");
         while (poll) {
-            String msgTxt = getMessage(forQueue);
+            getMessages();
             pause();
         }
     }
@@ -82,100 +84,90 @@ public class SqsMessageSource implements Runnable{
     private void pause() {
         try {
             Thread.sleep(1000);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
     /**
-     * initial point to instance things
+     * Create the queue (should be idempotent, so matters little if queue already exists)
+     *
      */
-    public void doSQS() {
-        // Should maybe offer mechanism to create a queue (or set of)
-        System.out.println("doSQS called");
+    protected void createQueue() {
+        CreateQueueRequest createRequest = new CreateQueueRequest(qNme)
+                .addAttributesEntry("MessageRetentionPeriod", "86400");
+        try {
+            sqsClient.createQueue(createRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    /**
-     * Just attempt the queue creation regardless for now, but should be able to check the existing
-     * @param queueName
-     */
-    protected void createQueue( String queueName ) {
-
-        // We should have set the queue if it's there (including oif we just created it)
-////        if (forQueue == null){
-
-            CreateQueueRequest createRequest=new CreateQueueRequest( queueName )
-                    .addAttributesEntry("MessageRetentionPeriod", "86400");
-
-            try {
-                // Use SQS create queue and record name if we don't throw an exception
-                sqsClient.createQueue(createRequest);
-                forQueue = queueName;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+    // Delete the queue.
+    protected void deleteQueue() {
+        DeleteQueueRequest deleteQueueRequest = new DeleteQueueRequest(qUrl);
+        try {
+            sqsClient.deleteQueue(deleteQueueRequest);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-////    }
+    }
 
     /**
      * Given message and where to write it, do so
+     *
      * @param messageText
-     * @param queueName
      */
-    public void sendMessage( String messageText, String queueName ) {
+//    public void sendMessage(String messageText, String queueName) {
+    public void sendMessage(String messageText) {
 
-        // TODO : improve getting the queue Url
-        String queueUrl=QUEUE_PREFIX + queueName;
-
-        // Perhaps check for queue existence (or force creation)
-        createQueue( queueName );
+        // Whilst I check the deal with need for queue creation
+        if (CREATE_Q_ALWAYS) createQueue();
 
         // Generate the request.  Must be a better way than having queue as text in the calls
-        SendMessageRequest smr=new SendMessageRequest()
-                .withQueueUrl( queueUrl )
-                .withMessageBody( messageText )
-                .withDelaySeconds( 0 )
-                // add attributes
-                .addMessageAttributesEntry(ATTRIBUTE_NAME, new MessageAttributeValue()
-                        .withDataType("String")
-                        .withStringValue("test attrib value for " + messageText))
-                ;
+        SendMessageRequest smr = new SendMessageRequest()
+                .withQueueUrl(qUrl)
+                .withMessageBody(messageText)
+                .withDelaySeconds(0)
+                // add attributes - why ??
+                .addMessageAttributesEntry(ATTRIBUTE_NAME,
+                        new MessageAttributeValue()
+                                .withDataType("String")
+                                .withStringValue("test attrib value for " + messageText)
+                );
 
-        // send it to queue
-        sqsClient.sendMessage( smr );
-
+        // send request to client
+        sqsClient.sendMessage(smr);
     }
 
     /**
-     * For now just grab something from the queue, dump to screen and then remove from queue
-     * @param queueName
+     * Get the Messages which will be picked up by the handler we've been given
      */
-    public String getMessage( String queueName ){
+    public void getMessages() {
 
-        // TODO : improve getting the queue Url
-        String queueUrl = QUEUE_PREFIX + queueName;
-        String messageText = "";
-        String attributeText="";
+        // Whilst I check the deal with need for queue creation
+        if (CREATE_Q_ALWAYS) createQueue();
 
-        // BB 20200419 - atempting to run as poller is failing as queue needn't exist
-        createQueue( queueName );
-
-        ReceiveMessageRequest rmr=new ReceiveMessageRequest()
-                .withQueueUrl( queueUrl )
+        ReceiveMessageRequest rmr = new ReceiveMessageRequest()
+                .withQueueUrl(qUrl)
                 .withMessageAttributeNames(ALL_ATTRIBUTES)
                 .withWaitTimeSeconds(LONG_POLL)    // delay before next poll IF nothing returend
                 .withMaxNumberOfMessages(MAX_MSGS) // Number of messages per poll
                 ;
 
+        // send request to client and receive response as list of messages
+        List<Message> messages = sqsClient.receiveMessage(rmr).getMessages();
+        System.out.println("Messages retrieved " + qNme + ": " + messages.size());
 
+        // Pass the messages off to be handled (one at a time)
+        handleMessages( messages );
+    }
 
-//        List<Message> messages = sqsClient.receiveMessage( queueUrl ).getMessages();
-        List<Message> messages = sqsClient.receiveMessage( rmr ).getMessages();
-        System.out.println( "Messages retrieved " + queueName + ": " + messages.size() );
+    // For now we'll work on the given handler returning whether its handled/unhandled/unhandlable (latter = DLQ candidate)
+    protected void handleMessages(List<Message> messages) {
+        int code=0;
+        String messageText = "";
+        String attributeText = "";
 
         for (Message m : messages) {
 
@@ -184,38 +176,66 @@ public class SqsMessageSource implements Runnable{
                     ? m.getMessageAttributes().get(ATTRIBUTE_NAME).getStringValue() : "no value";
 
             messageText = m.getBody();
-            System.out.println( "Message body was : " + messageText + " -> " + ATTRIBUTE_NAME + " : " + attributeText );
+//            System.out.println("Message body was : " + messageText + " -> " + ATTRIBUTE_NAME + " : " + attributeText);
 
 
-            // This is where we will want to put in stuff to kick this upstairs
-            // which could be directly OR via some kind of exchange
+            // Payload
+            code = handleMessageText(messageText) ;
 
-            // ? Where would any unencryption sit?
-
-
-            // Likely to want to react on basis of response to the publish/handle stuff
-            if (messageHandlerService != null) {
-                System.out.println("Passing " + messageText + " to handler");
-                messageHandlerService.handle(messageText);
+            // If it can't be handled ever (dodgy data)
+            if ( code < 0 ) {
+                // Will want to stick on a DLQ
             }
 
+            // If it's unhandled or not handleable then effectively do an ACK. Remove from queue
+            if ( code != 0 ) {
+                sqsClient.deleteMessage(qUrl, m.getReceiptHandle());
+            }
+        }
+    }
 
-            sqsClient.deleteMessage(queueUrl, m.getReceiptHandle());
+    /*
+        ?? Where would we see the encryption / validation / mapping / ect sit ??
+        Different sources likely to have different credentials, encryption, message structure, validations etc
+     */
+    protected int handleMessageText(String messageText) {
+        int code=0;
+
+        // Still not sure if the crypto/validation/etc sits here ...
+
+
+        // Likely to want to react on basis of response to the publish/handle stuff
+        if (messageHandlerService != null) {
+            code = messageHandlerService.handle(messageText);
         }
 
-        return messageText;
+        // Pass back handling info
+        return code;
     }
+
+
 
     // While I play!!
     public String getQueueName() {
-        System.out.println("getQueueName returning -> " + forQueue);
-        return forQueue;
+        System.out.println("getQueueName returning -> " + qNme);
+        return qNme;
     }
 
+    // Need to add some kind of mechanism to make sure we don't start in zillions of threads
+    @Override
+    public void begin() {
+        System.out.println("it begins -> " + qNme);
+        Thread t = new Thread(this);
+        t.start();
+    }
 
+    // Stop producing messages altogether
+    @Override
+    public void cease() {
+        System.out.println("Cease called");
+    }
 
-
-
+    // Mechanism to temporarily halt/unhalt production of messages
 
 
 }

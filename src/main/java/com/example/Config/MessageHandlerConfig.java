@@ -1,7 +1,7 @@
 package com.example.Config;
 
-import com.example.Handler.ConsoleMessageHandler;
-import com.example.Handler.MessageHandlerService;
+import com.example.Handler.ConsoleMessageTextHandler;
+import com.example.Handler.MessageTextHandlerService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +14,9 @@ public class MessageHandlerConfig {
 
     @Bean
     @Qualifier("subHandler")
-    MessageHandlerService subHandler() {
+    MessageTextHandlerService subHandler() {
         // Could return any different kind of handler (emailing handler, report handler, etc)
-        return new ConsoleMessageHandler();
+        return new ConsoleMessageTextHandler();
     }
 
 

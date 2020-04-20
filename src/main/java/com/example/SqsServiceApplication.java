@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.Handler.ConsoleMessageHandler;
+import com.example.Handler.ConsoleMessageTextHandler;
 import com.example.service.SqsMessageSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -70,14 +70,9 @@ public class SqsServiceApplication implements CommandLineRunner {
         System.out.println("  sqsService using : " + sqsService.getQueueName());
         System.out.println(" ");
 
-        // Just start in a bare thread (threadbare?)
-        sqsService.setMessageHandler(new ConsoleMessageHandler());
-        Thread t1 = new Thread(sqsService);
-        t1.start();
-        System.out.println("sqsService running");
-
-        Thread t2 = new Thread(subService);
-        t2.start();
+        // Configuration has created us some message sources.  Let's use them
+        sqsService.begin();
+        subService.begin();
 
         // Need to think when we end, given there could be multiple queues polling at an given time
 //        exit(0);

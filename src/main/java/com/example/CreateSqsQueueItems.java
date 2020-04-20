@@ -1,6 +1,8 @@
 package com.example;
 
+import com.example.Domain.Payload;
 import com.example.service.SqsMessageSource;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.Banner;
@@ -36,6 +38,19 @@ public class CreateSqsQueueItems implements CommandLineRunner {
         app.run(args);
     }
 
+    private String getMsgText(Payload p){
+        String s="";
+        ObjectMapper om = new ObjectMapper();
+
+        try {
+            s =om.writeValueAsString(p);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return s;
+    }
+
+
     // This populates the queue and then (perhaps unexpectedly) kicks off proper service too
     @Override
     public void run(String... args) throws Exception {
@@ -45,20 +60,22 @@ public class CreateSqsQueueItems implements CommandLineRunner {
         System.out.println("=== CreateSqsQueueItems before starting service proper ===");
         System.out.println("==========================================================");
 
-        // Don't recall why this gets done ...
-        queueService.doSQS();
+        // Allow flick between add queue messages and not
+        boolean fill = true;
+//        fill = false;
+        if(fill) {
 
-        // Create a bunch of stuff on the queue and check that poller sees it
-        queueService.sendMessage("a", queueName);
-        queueService.sendMessage("b", queueName);
-        queueService.sendMessage("c", queueName);
-        queueService.sendMessage("d", queueName);
-        queueService.sendMessage("e", queueName);
-        queueService.sendMessage("f", queueName);
+            // Create a bunch of stuff on the queue and check that poller sees it
+            queueService.sendMessage(getMsgText(new Payload("a","A")));
+            queueService.sendMessage("b");
+            queueService.sendMessage(getMsgText(new Payload("z","Z")));
+            queueService.sendMessage("d");
+            queueService.sendMessage(getMsgText(null));
+            queueService.sendMessage("f");
 
-        subService.sendMessage("1st", "trying");
-        subService.sendMessage("2nd", "trying");
-
+            subService.sendMessage("1st");
+            subService.sendMessage("2nd");
+        }
     }
 
 }
