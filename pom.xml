@@ -30,6 +30,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-aws-messaging</artifactId>
+<!--            <version>1.2.1.RELEASE</version>-->
             <version>1.2.1.RELEASE</version>
         </dependency>
 

@@ -59,30 +59,33 @@ public class SqsClientConfig {
         return sqs;
     }
 
-//    // 11/6/2020 - bundle this with the rest of the AWS stuff
-//    @Bean
-//    public AmazonSNS amazonSNS() {
-//
-//        return AmazonSNSClientBuilder
-//                .standard()
-//                .withEndpointConfiguration(endpointConfiguration())
-//                .withCredentials(awsCredentialsProvider())
-//                .build();
-//    }
-
     // 11/6/2020 - bundle this with the rest of the AWS stuff
     @Bean
-    public AmazonSNSClient amazonSNSClient() {
+    public AmazonSNS amazonSNS() {
 
-        return (AmazonSNSClient)AmazonSNSClientBuilder
+        return AmazonSNSClientBuilder
                 .standard()
-//                .withRegion(signingRegion)
+//                .withEndpointConfiguration(endpointConfiguration())
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
                         "http://localhost:4575/",
                         signingRegion))
                 .withCredentials(awsCredentialsProvider())
                 .build();
     }
+
+//    // 11/6/2020 - bundle this with the rest of the AWS stuff
+//    @Bean
+//    public AmazonSNSClient amazonSNSClient() {
+//
+//        return (AmazonSNSClient)AmazonSNSClientBuilder
+//                .standard()
+////                .withRegion(signingRegion)
+//                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
+//                        "http://localhost:4575/",
+//                        signingRegion))
+//                .withCredentials(awsCredentialsProvider())
+//                .build();
+//    }
 
     @Bean
     public NotificationMessagingTemplate notificationMessagingTemplate(AmazonSNS sns) {

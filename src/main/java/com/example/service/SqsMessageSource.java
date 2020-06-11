@@ -187,7 +187,7 @@ public class SqsMessageSource implements Runnable, MessageSource {
 
             // Payload
             code = handleMessageText(messageText) ;
-            System.out.println("handler returned code = " + code);
+//            System.out.println("handler returned code = " + code);
 
             // If it can't be handled ever (dodgy data)
             if ( code < 0 ) {
@@ -196,6 +196,7 @@ public class SqsMessageSource implements Runnable, MessageSource {
 
             // If it's unhandled or not handleable then effectively do an ACK. Remove from queue
             if ( code != 0 ) {
+//                System.out.println("deleting " + m.getBody() + " >> " + m.getReceiptHandle());
                 sqsClient.deleteMessage(qUrl, m.getReceiptHandle());
             }
         }
