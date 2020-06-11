@@ -9,11 +9,14 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /*
     Want this to simply fire stuff at the queues we're watching being polled.  Shouldn't get to production !!
  */
 @SpringBootApplication
+// Don't want ALL the spring boot stuff to go
+@ComponentScan("com.example.Config, com.example.Handler")
 public class CreateSqsQueueItems implements CommandLineRunner {
 
     // Will want an easy way to create queue entries

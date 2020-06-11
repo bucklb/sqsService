@@ -7,6 +7,7 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /*
     Pending creating a decent read me ...
@@ -42,6 +43,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
+// Don't want ALL the spring boot stuff to go
+@ComponentScan("com.example.Config, com.example.Handler")
 public class SqsServiceApplication implements CommandLineRunner {
 
     // Get a queue service

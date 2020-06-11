@@ -113,6 +113,12 @@ public class SqsMessageSource implements Runnable, MessageSource {
         }
     }
 
+    public String getQueueUrl() {
+        return qUrl;
+    }
+
+
+
     /**
      * Given message and where to write it, do so
      *
@@ -181,6 +187,7 @@ public class SqsMessageSource implements Runnable, MessageSource {
 
             // Payload
             code = handleMessageText(messageText) ;
+            System.out.println("handler returned code = " + code);
 
             // If it can't be handled ever (dodgy data)
             if ( code < 0 ) {

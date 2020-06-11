@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConsoleMessageTextHandler implements MessageTextHandlerService {
 
-    private final String FORBIDDEN_TEXT = "x";
+    private final String FORBIDDEN_TEXT = "verboten";
 
     @Autowired
     MessageTextParserImpl messageTextParser;
