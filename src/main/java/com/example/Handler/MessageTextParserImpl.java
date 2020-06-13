@@ -4,7 +4,7 @@ import com.example.Domain.Payload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+//import javax.annotation.PostConstruct;
 
 @Component
 public class MessageTextParserImpl implements MessageTextParser{

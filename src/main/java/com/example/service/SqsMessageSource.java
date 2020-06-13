@@ -6,7 +6,7 @@ import com.amazonaws.services.sqs.model.*;
 import com.example.Handler.MessageTextHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
+//import javax.annotation.PostConstruct;
 import java.util.List;
 
 //@Service
@@ -42,7 +42,7 @@ public class SqsMessageSource implements Runnable, MessageSource {
     String qUrl = null;
 
     // At this point should have enough details (specifically sqsClient should be good to go)
-    @PostConstruct
+//    @PostConstruct
     private void doInit() {
         // Fire once (rather than every time we want to create/read message)
         createQueue();

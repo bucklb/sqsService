@@ -26,7 +26,8 @@ public class SqsSourceConfig {
     @Bean
     @Qualifier("bbService")
     public SqsMessageSource sqsService() {
-        queueName = "testing";
+//        queueName = "testing";
+        queueName = "apocalypse";
         System.out.println("ConsumerConfig creating queueService as bean.  queueName = " +queueName );
         SqsMessageSource qs = new SqsMessageSource( queueName );
         qs.setMessageHandler(subHandler);
@@ -37,7 +38,8 @@ public class SqsSourceConfig {
     @Bean
     @Qualifier("subService")
     public SqsMessageSource subService() {
-        queueName = "trying";
+//        queueName = "trying";
+        queueName = "lastbreath";
         System.out.println("ConsumerConfig creating queueService as bean.  queueName = " +queueName );
         SqsMessageSource qs = new SqsMessageSource( queueName );
         qs.setMessageHandler(subHandler);
