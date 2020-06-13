@@ -39,6 +39,10 @@ public class CreateSnsItems implements CommandLineRunner {
     private SqsMessageSource sqsService;
 
     @Autowired
+    @Qualifier("subService")
+    private SqsMessageSource subService;
+
+    @Autowired
     AmazonSQS sqs;
 
     @Autowired
@@ -112,8 +116,14 @@ public class CreateSnsItems implements CommandLineRunner {
         String topicTooArn = createTopic(topicToo);
 
         System.out.println("creating subscription");
+        // sqsAService subscribes to both topics
         Topics.subscribeQueue(sns, sqs, myTopicArn, sqsService.getQueueUrl());
         Topics.subscribeQueue(sns, sqs, topicTooArn, sqsService.getQueueUrl());
+
+        // subService subscribes to one
+        Topics.subscribeQueue(sns, sqs, myTopicArn, subService.getQueueUrl());
+
+
 
 //        System.out.println("Idling");
 //        Thread.sleep(5000);
